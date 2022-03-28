@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class MainDrawer extends StatelessWidget {
+  const MainDrawer({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -28,7 +30,7 @@ class MainDrawer extends StatelessWidget {
                 Icons.directions_bike_outlined,
                 color: Colors.black54,
               ),
-              title: Text('Bike'),
+              title: const Text('Bike'),
               onTap: () {
 
               },

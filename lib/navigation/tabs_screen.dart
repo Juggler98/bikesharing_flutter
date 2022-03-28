@@ -1,11 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'package:bikesharing/navigation/map_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../main_drawer.dart';
 
 class TabsScreen extends StatefulWidget {
-
-  TabsScreen();
+  const TabsScreen({Key? key}) : super(key: key);
 
   @override
   _TabsScreenState createState() => _TabsScreenState();
@@ -19,12 +18,11 @@ class _TabsScreenState extends State<TabsScreen>
 
   int _selectedPageIndex = 1;
 
-
-
   @override
   void initState() {
     super.initState();
     _pages = [
+      const MapScreen(),
     ];
     _pageController = PageController(initialPage: _selectedPageIndex);
   }
@@ -53,17 +51,16 @@ class _TabsScreenState extends State<TabsScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.directions_bike_outlined),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            tooltip: 'Bikesharing',
-            onPressed: () async {}
-          ),
+              icon: const Icon(Icons.directions_bike_outlined),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              tooltip: 'Bikesharing',
+              onPressed: () async {}),
         ],
       ),
       drawer: MainDrawer(),
       body: PageView(
         controller: _pageController,
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: _pages,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
