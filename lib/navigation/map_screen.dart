@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:ui';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:badges/badges.dart';
+import 'package:bikesharing/models/bike.dart';
 import 'package:bikesharing/models/stand.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -34,30 +39,11 @@ class _MapScreenState extends State<MapScreen>
   var _areMarkersLoading = false;
 
   List<Stand> items = [
-    for (int i = 0; i < 10; i++)
+    for (int i = 1; i < 10; i++)
       Stand(
-          id: 'Stand $i',
-          location: LatLng(48.848200 + i * 0.001, 2.319124 + i * 0.001)),
-    for (int i = 0; i < 10; i++)
-      Stand(
-          id: 'Stand $i',
-          location: LatLng(48.858265 - i * 0.001, 2.350107 + i * 0.001)),
-    for (int i = 0; i < 10; i++)
-      Stand(
-          id: 'Stand $i',
-          location: LatLng(48.858265 + i * 0.01, 2.350107 - i * 0.01)),
-    for (int i = 0; i < 10; i++)
-      Stand(
-          id: 'Stand $i',
-          location: LatLng(48.858265 - i * 0.1, 2.350107 - i * 0.01)),
-    for (int i = 0; i < 10; i++)
-      Stand(
-          id: 'Stand $i',
-          location: LatLng(48.858265 + i * 0.1, 2.350107 + i * 0.1)),
-    for (int i = 0; i < 10; i++)
-      Stand(
-          id: 'Stand $i',
-          location: LatLng(48.858265 + i * 1, 2.350107 + i * 1)),
+          id: '$i',
+          location: LatLng(49.2 + i * 0.001, 18.7 + i * 0.001),
+          capacity: 10),
   ];
 
   @override
@@ -73,6 +59,29 @@ class _MapScreenState extends State<MapScreen>
     if (mounted) {
       _manager = _initClusterManager();
     }
+
+    final random = Random();
+
+    for (int i = 1; i < 8; i++) {
+      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      items[0].addBike(bike);
+    }
+    for (int i = 1; i < 4; i++) {
+      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      items[1].addBike(bike);
+    }
+    for (int i = 1; i < 10; i++) {
+      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      items[3].addBike(bike);
+    }
+    for (int i = 1; i < 3; i++) {
+      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      items[6].addBike(bike);
+    }
+    for (int i = 1; i < 2; i++) {
+      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      items[7].addBike(bike);
+    }
   }
 
   @override
@@ -84,7 +93,7 @@ class _MapScreenState extends State<MapScreen>
     return ClusterManager<Stand>(items, _updateMarkers,
         markerBuilder: _markerBuilder,
         extraPercent: 0.2,
-        stopClusteringZoom: 9.0);
+        stopClusteringZoom: 12.0);
   }
 
   void _updateMarkers(Set<Marker> markers) {
@@ -127,6 +136,8 @@ class _MapScreenState extends State<MapScreen>
       }
     }
   }
+
+  void _showBottomShet() {}
 
   void _askForLocation() async {
     try {
@@ -254,9 +265,13 @@ class _MapScreenState extends State<MapScreen>
                             _loadStands();
                             if (mounted) _askForLocation();
                             _isMapLoading = false;
+                            if (mounted && _manager != null) {
+                              _manager?.updateMap();
+                            }
                           }
                         },
                         onCameraMove: (CameraPosition position) {
+                          print(position.zoom);
                           if (_manager != null) {
                             _manager?.onCameraMove(position);
                           }
@@ -306,11 +321,109 @@ class _MapScreenState extends State<MapScreen>
         return Marker(
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
-          onTap: () {},
+          onTap: () {
+            Stand stand = cluster.items.first;
+            showModalBottomSheet(
+                context: context,
+                builder: (BuildContext buildContext) {
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Stojan ${stand.id}',
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const Divider(
+                        height: 1,
+                        endIndent: 8,
+                        indent: 8,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Badge(
+                          position: const BadgePosition(end: -24, top: -8),
+                          padding: const EdgeInsets.all(4),
+                          shape: BadgeShape.square,
+                          borderRadius: const BorderRadius.all(
+                              Radius.elliptical(200, 200)),
+                          badgeColor:
+                              stand.bikeCount > 0 ? Colors.green : Colors.red,
+                          badgeContent: Text(
+                              '${stand.bikeCount}/${stand.capacity}',
+                              style: const TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                          child: Column(
+                            children: const [
+                              Icon(
+                                Icons.directions_bike,
+                                color: Colors.blue,
+                                size: 42,
+                              ),
+                              Text('Bicykle'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Divider(
+                        height: 1,
+                        endIndent: 8,
+                        indent: 8,
+                      ),
+                      Expanded(
+                        child: ListView(
+                          children: stand.bikes.map((bike) {
+                            return InkWell(
+                              onTap: () {
+                                AwesomeDialog(
+                                  context: context,
+                                  dialogType: DialogType.QUESTION,
+                                  animType: AnimType.BOTTOMSLIDE,
+                                  headerAnimationLoop: false,
+                                  body: Text('Odomknúť tento bicykel?'),
+                                  btnOkText: 'Áno',
+                                  btnOkOnPress: () {
+                                    Fluttertoast.showToast(
+                                      msg: 'Bicykel bol odomknutý',
+                                      toastLength: Toast.LENGTH_LONG,
+                                      backgroundColor: Colors.black54,
+                                    );
+                                  },
+                                ).show();
+                              },
+                              child: Card(
+                                elevation: 2,
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 1, horizontal: 6),
+                                child: ListTile(
+                                    leading: const Icon(
+                                      Icons.directions_bike,
+                                      color: Colors.blue,
+                                      size: 54,
+                                    ),
+                                    title: Text(bike.id,
+                                        style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold))),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  );
+                });
+          },
           icon: await _getMarkerBitmap(
             cluster.isMultiple ? 115 : 45,
             text: cluster.isMultiple ? cluster.count.toString() : '',
-            color: Colors.green,
+            color: cluster.isMultiple
+                ? Colors.green
+                : cluster.items.first.bikeCount > 0
+                    ? Colors.green
+                    : Colors.grey,
           ),
         );
       };
