@@ -394,9 +394,9 @@ class _MapScreenState extends State<MapScreen>
                                 ).show();
                               },
                               child: Card(
-                                elevation: 2,
+                                elevation: 0,
                                 margin: const EdgeInsets.symmetric(
-                                    vertical: 1, horizontal: 6),
+                                    vertical: 1, horizontal: 4),
                                 child: ListTile(
                                     leading: const Icon(
                                       Icons.directions_bike,

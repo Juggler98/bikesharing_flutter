@@ -1,4 +1,5 @@
 import 'package:bikesharing/navigation/map_screen.dart';
+import 'package:bikesharing/screens/history_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../main_drawer.dart';
@@ -23,6 +24,7 @@ class _TabsScreenState extends State<TabsScreen>
     super.initState();
     _pages = [
       const MapScreen(),
+      HistoryScreen(),
     ];
     _pageController = PageController(initialPage: _selectedPageIndex);
   }
@@ -57,7 +59,7 @@ class _TabsScreenState extends State<TabsScreen>
               onPressed: () async {}),
         ],
       ),
-      drawer: MainDrawer(),
+      drawer: const MainDrawer(),
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
@@ -74,10 +76,10 @@ class _TabsScreenState extends State<TabsScreen>
         currentIndex: _selectedPageIndex,
         //selectedIconTheme: IconThemeData(color: Colors.green),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Domov',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.home),
+          //   label: 'Domov',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
             label: 'Mapa',
