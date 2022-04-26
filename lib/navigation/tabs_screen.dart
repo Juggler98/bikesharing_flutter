@@ -1,3 +1,4 @@
+import 'package:bikesharing/models/user.dart';
 import 'package:bikesharing/navigation/map_screen.dart';
 import 'package:bikesharing/screens/history_screen.dart';
 import 'package:flutter/material.dart';
@@ -44,9 +45,12 @@ class _TabsScreenState extends State<TabsScreen>
     }
   }
 
+  var scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: const Text(
           'Bikesharing',
@@ -60,10 +64,22 @@ class _TabsScreenState extends State<TabsScreen>
         ],
       ),
       drawer: const MainDrawer(),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: _pages,
+      body: Stack(
+        children: [
+          PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: _pages,
+          ),
+          // Positioned(
+          //   left: 10,
+          //   top: 20,
+          //   child: IconButton(
+          //     icon: Icon(Icons.menu),
+          //     onPressed: () => scaffoldKey.currentState?.openDrawer(),
+          //   ),
+          // ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _selectedPageIndex != 2 ? null : null,

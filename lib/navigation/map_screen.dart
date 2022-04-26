@@ -6,7 +6,11 @@ import 'dart:ui';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:badges/badges.dart';
 import 'package:bikesharing/models/bike.dart';
+import 'package:bikesharing/models/ride.dart';
 import 'package:bikesharing/models/stand.dart';
+import 'package:bikesharing/models/user.dart';
+import 'package:bikesharing/models/vehicle_type.dart';
+import 'package:bikesharing/widgets/stop_timer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -37,6 +41,11 @@ class _MapScreenState extends State<MapScreen>
 
   var _isMapLoading = false;
   var _areMarkersLoading = false;
+
+  final _user = User(
+    id: '0',
+    email: 'test',
+  );
 
   List<Stand> items = [
     for (int i = 1; i < 10; i++)
@@ -309,6 +318,87 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ),
                 ),
+              if (_user.actualRide != null)
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 60,
+                  color: Colors.green,
+                  child: Row(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Text(
+                          'Jazda prebieha',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      StopTimer(_user.actualRide!.startDate),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ElevatedButton(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Text(
+                                    'Stop',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  SizedBox(width: 5),
+                                  Icon(
+                                    Icons.stop,
+                                    size: 18,
+                                  ),
+                                ],
+                              ),
+                              onPressed: () {
+                                AwesomeDialog(
+                                  context: context,
+                                  dialogType: DialogType.QUESTION,
+                                  animType: AnimType.BOTTOMSLIDE,
+                                  headerAnimationLoop: false,
+                                  body: const Text('Ukončiť jazdu?'),
+                                  btnOkText: 'Áno',
+                                  btnOkOnPress: () {
+                                    setState(() {
+                                      _user.actualRide = null;
+                                    });
+                                    Fluttertoast.showToast(
+                                      msg: 'Jazda ukončená',
+                                      toastLength: Toast.LENGTH_LONG,
+                                      backgroundColor: Colors.black54,
+                                    );
+                                  },
+                                ).show();
+                              },
+                              style: ButtonStyle(
+                                shape: MaterialStateProperty.all(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30)),
+                                ),
+                                padding: MaterialStateProperty.all(
+                                    const EdgeInsets.symmetric(
+                                        horizontal: 18.0, vertical: 8.0)),
+                                backgroundColor:
+                                    MaterialStateProperty.all(Colors.redAccent),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
             ],
           ),
         ),
@@ -382,14 +472,32 @@ class _MapScreenState extends State<MapScreen>
                                   dialogType: DialogType.QUESTION,
                                   animType: AnimType.BOTTOMSLIDE,
                                   headerAnimationLoop: false,
-                                  body: Text('Odomknúť tento bicykel?'),
+                                  body: const Text('Odomknúť tento bicykel?'),
                                   btnOkText: 'Áno',
                                   btnOkOnPress: () {
-                                    Fluttertoast.showToast(
-                                      msg: 'Bicykel bol odomknutý',
-                                      toastLength: Toast.LENGTH_LONG,
-                                      backgroundColor: Colors.black54,
-                                    );
+                                    if (_user.actualRide == null) {
+                                      Ride ride = Ride(
+                                          id: Random().nextInt(100).toString(),
+                                          startDate: DateTime.now(),
+                                          locationStart: stand.location,
+                                          vehicleType: VehicleType.bike);
+                                      setState(() {
+                                        _user.actualRide = ride;
+                                      });
+                                      Fluttertoast.showToast(
+                                        msg: 'Bicykel bol odomknutý',
+                                        toastLength: Toast.LENGTH_LONG,
+                                        backgroundColor: Colors.black54,
+                                      );
+                                    } else {
+                                      Fluttertoast.showToast(
+                                        msg:
+                                            'Môžeš si požičať len jeden bicykel',
+                                        toastLength: Toast.LENGTH_LONG,
+                                        backgroundColor: Colors.black54,
+                                      );
+                                    }
+                                    Navigator.of(buildContext).pop();
                                   },
                                 ).show();
                               },

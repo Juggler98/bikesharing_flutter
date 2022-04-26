@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:bikesharing/models/history.dart';
+import 'package:bikesharing/models/ride.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
 import 'package:bikesharing/screens/history_detail_screen.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +11,9 @@ import 'package:intl/intl.dart';
 class HistoryScreen extends StatelessWidget {
   HistoryScreen({Key? key}) : super(key: key);
 
-  final List<History> history = [
+  final List<Ride> history = [
     for (int i = 1; i < 100; i++)
-      History(
+      Ride(
         id: '$i',
         locationStart: LatLng(
             49.21 + Random().nextDouble(), 18.71 + Random().nextDouble()),
@@ -54,7 +54,7 @@ class HistoryScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${(Geolocator.distanceBetween(history.locationStart.latitude, history.locationStart.longitude, history.locationEnd.latitude, history.locationEnd.longitude) / 100).ceil() / 10} km - ${history.endDate.difference(history.startDate).inMinutes} min',
+                      '${history.locationEnd != null ? (Geolocator.distanceBetween(history.locationStart.latitude, history.locationStart.longitude, history.locationEnd!.latitude, history.locationEnd!.longitude) / 100).ceil() / 10 : '?'} km - ${history.endDate != null ? history.endDate?.difference(history.startDate).inMinutes : DateTime.now().difference(history.startDate).inMinutes} min',
                       style: const TextStyle(
                           fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 2),
@@ -64,9 +64,15 @@ class HistoryScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              trailing: Text('${history.price / 100} €',
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold)),
+              trailing: history.price != null
+                  ? Text(
+                      '${history.price! / 100} €',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
           ),
         );
