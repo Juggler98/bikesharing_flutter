@@ -1,4 +1,3 @@
-import 'package:bikesharing/models/user.dart';
 import 'package:bikesharing/navigation/map_screen.dart';
 import 'package:bikesharing/screens/history_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,7 @@ class TabsScreen extends StatefulWidget {
   const TabsScreen({Key? key}) : super(key: key);
 
   @override
-  _TabsScreenState createState() => _TabsScreenState();
+  State<TabsScreen> createState() => _TabsScreenState();
 }
 
 class _TabsScreenState extends State<TabsScreen>
@@ -73,10 +72,14 @@ class _TabsScreenState extends State<TabsScreen>
           ),
           // Positioned(
           //   left: 10,
-          //   top: 20,
-          //   child: IconButton(
-          //     icon: Icon(Icons.menu),
-          //     onPressed: () => scaffoldKey.currentState?.openDrawer(),
+          //   top: 16,
+          //   child: CircleAvatar(
+          //     radius: 24,
+          //     backgroundColor: Colors.white,
+          //     child: IconButton(
+          //       icon: const Icon(Icons.menu),
+          //       onPressed: () => scaffoldKey.currentState?.openDrawer(),
+          //     ),
           //   ),
           // ),
         ],

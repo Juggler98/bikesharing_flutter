@@ -1,4 +1,7 @@
+import 'package:bikesharing/screens/history_screen.dart';
 import 'package:flutter/material.dart';
+
+import 'constants.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({Key? key}) : super(key: key);
@@ -27,34 +30,36 @@ class MainDrawer extends StatelessWidget {
             const SizedBox(height: 15),
             ListTile(
               leading: const Icon(
-                Icons.directions_bike_outlined,
+                Icons.history,
                 color: Colors.black54,
               ),
-              title: const Text('Bike'),
+              title: const Text('História jázd'),
               onTap: () {
-
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => HistoryScreen(),
+                  ),
+                );
               },
             ),
             const Divider(),
             ListTile(
               leading: const Icon(
-                Icons.electric_scooter,
+                Icons.info_outline,
                 color: Colors.black54,
               ),
-              title: const Text('Kolobežka'),
+              title: const Text('Info'),
               onTap: () async {
-
-                Navigator.pop(context);
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(
-                Icons.directions_walk,
-                color: Colors.black54,
-              ),
-              title: const Text('Pešo'),
-              onTap: () {
+                showAboutDialog(
+                  context: context,
+                  applicationIcon: Image.asset(
+                    'assets/bike.png',
+                    width: 48,
+                  ),
+                  applicationName: 'Bikesharing',
+                  applicationVersion: version,
+                  applicationLegalese: '© 2022 Adam Belianský & Lukáš Roman',
+                );
               },
             ),
           ],

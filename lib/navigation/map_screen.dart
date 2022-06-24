@@ -10,7 +10,9 @@ import 'package:bikesharing/models/ride.dart';
 import 'package:bikesharing/models/stand.dart';
 import 'package:bikesharing/models/user.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
+import 'package:bikesharing/screens/scanner_screen.dart';
 import 'package:bikesharing/widgets/stop_timer.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -23,7 +25,7 @@ class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
 
   @override
-  _MapScreenState createState() => _MapScreenState();
+  State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen>
@@ -115,23 +117,23 @@ class _MapScreenState extends State<MapScreen>
 
   var firstLoad = false;
 
-  void _moveCamera(double latitude, double longitude) {
-    try {
-      _googleMapController!.animateCamera(
-        CameraUpdate.newCameraPosition(
-          (CameraPosition(
-            target: LatLng(latitude, longitude),
-            zoom: 14,
-          )),
-        ),
-      );
-      firstLoad = true;
-    } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
-    }
-  }
+  // void _moveCamera(double latitude, double longitude) {
+  //   try {
+  //     _googleMapController!.animateCamera(
+  //       CameraUpdate.newCameraPosition(
+  //         (CameraPosition(
+  //           target: LatLng(latitude, longitude),
+  //           zoom: 14,
+  //         )),
+  //       ),
+  //     );
+  //     firstLoad = true;
+  //   } catch (error) {
+  //     if (kDebugMode) {
+  //       print(error);
+  //     }
+  //   }
+  // }
 
   void _changeLastLocation() async {
     try {
@@ -146,27 +148,29 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  void _showBottomShet() {}
+  // void _showBottomShet() {
+  //
+  // }
 
   void _askForLocation() async {
     try {
       Location location = Location();
 
-      bool _serviceEnabled;
-      PermissionStatus _permissionGranted;
+      bool serviceEnabled;
+      PermissionStatus permissionGranted;
 
-      _serviceEnabled = await location.serviceEnabled();
-      if (!_serviceEnabled) {
-        _serviceEnabled = await location.requestService();
-        if (!_serviceEnabled) {
+      serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) {
           return;
         }
       }
 
-      _permissionGranted = await location.hasPermission();
-      if (_permissionGranted == PermissionStatus.denied) {
-        _permissionGranted = await location.requestPermission();
-        if (_permissionGranted != PermissionStatus.granted) {
+      permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
           return;
         }
       }
@@ -280,7 +284,6 @@ class _MapScreenState extends State<MapScreen>
                           }
                         },
                         onCameraMove: (CameraPosition position) {
-                          print(position.zoom);
                           if (_manager != null) {
                             _manager?.onCameraMove(position);
                           }
@@ -318,90 +321,120 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ),
                 ),
-              if (_user.actualRide != null)
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: 60,
-                  color: Colors.green,
-                  child: Row(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: Text(
-                          'Jazda prebieha',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+              if (!kIsWeb)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.settings_overscan),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (ctx) => ScannerScreen(),
                           ),
+                        );
+                      },
+                      label: const Text(
+                        'Naskenovať',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ButtonStyle(
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
                         ),
+                        padding: MaterialStateProperty.all(
+                            const EdgeInsets.symmetric(
+                                horizontal: 42.0, vertical: 12.0)),
                       ),
-                      const Spacer(),
-                      StopTimer(_user.actualRide!.startDate),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ElevatedButton(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Text(
-                                    'Stop',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  SizedBox(width: 5),
-                                  Icon(
-                                    Icons.stop,
-                                    size: 18,
-                                  ),
-                                ],
-                              ),
-                              onPressed: () {
-                                AwesomeDialog(
-                                  context: context,
-                                  dialogType: DialogType.QUESTION,
-                                  animType: AnimType.BOTTOMSLIDE,
-                                  headerAnimationLoop: false,
-                                  body: const Text('Ukončiť jazdu?'),
-                                  btnOkText: 'Áno',
-                                  btnOkOnPress: () {
-                                    setState(() {
-                                      _user.actualRide = null;
-                                    });
-                                    Fluttertoast.showToast(
-                                      msg: 'Jazda ukončená',
-                                      toastLength: Toast.LENGTH_LONG,
-                                      backgroundColor: Colors.black54,
-                                    );
-                                  },
-                                ).show();
-                              },
-                              style: ButtonStyle(
-                                shape: MaterialStateProperty.all(
-                                  RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30)),
-                                ),
-                                padding: MaterialStateProperty.all(
-                                    const EdgeInsets.symmetric(
-                                        horizontal: 18.0, vertical: 8.0)),
-                                backgroundColor:
-                                    MaterialStateProperty.all(Colors.redAccent),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
                 )
             ],
           ),
         ),
+        if (_user.actualRide != null)
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: 60,
+            color: Colors.green,
+            child: Row(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Text(
+                    'Jazda prebieha',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                StopTimer(_user.actualRide!.startDate),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          AwesomeDialog(
+                            context: context,
+                            dialogType: DialogType.QUESTION,
+                            animType: AnimType.BOTTOMSLIDE,
+                            headerAnimationLoop: false,
+                            body: const Text('Ukončiť jazdu?'),
+                            btnOkText: 'Áno',
+                            btnOkOnPress: () {
+                              setState(() {
+                                _user.actualRide = null;
+                              });
+                              Fluttertoast.showToast(
+                                msg: 'Jazda ukončená',
+                                toastLength: Toast.LENGTH_LONG,
+                                backgroundColor: Colors.black54,
+                              );
+                            },
+                          ).show();
+                        },
+                        style: ButtonStyle(
+                          shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                          ),
+                          padding: MaterialStateProperty.all(
+                              const EdgeInsets.symmetric(
+                                  horizontal: 18.0, vertical: 8.0)),
+                          backgroundColor:
+                              MaterialStateProperty.all(Colors.redAccent),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text(
+                              'Stop',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            SizedBox(width: 5),
+                            Icon(
+                              Icons.stop,
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -466,13 +499,48 @@ class _MapScreenState extends State<MapScreen>
                         child: ListView(
                           children: stand.bikes.map((bike) {
                             return InkWell(
-                              onTap: () {
+                              onTap: () async {
+                                if (kDebugMode && !kIsWeb) {
+                                  final parameters = DynamicLinkParameters(
+                                    // The Dynamic Link URI domain. You can view created URIs on your Firebase console
+                                    uriPrefix:
+                                        'https://bikesharingf3e11.page.link',
+                                    // The deep Link passed to your application which you can use to affect change
+                                    link: Uri.parse(
+                                        'https://bikesharingf3e11.page.link/?id=${bike.id}'),
+                                    // Android application details needed for opening correct app on device/Play Store
+                                    androidParameters: const AndroidParameters(
+                                      packageName: 'com.belsoft.bikesharing',
+                                      minimumVersion: 1,
+                                    ),
+                                    // iOS application details needed for opening correct app on device/App Store
+                                    iosParameters: const IOSParameters(
+                                      bundleId: 'com.belsoft.bikesharing',
+                                      minimumVersion: '1',
+                                    ),
+                                  );
+
+                                  try {
+                                    final shortDynamicLink =
+                                        await FirebaseDynamicLinks.instance
+                                            .buildShortLink(parameters);
+                                    final uri = shortDynamicLink.shortUrl;
+                                    if (kDebugMode) {
+                                      print(uri);
+                                    }
+                                  } catch (error) {
+                                    if (kDebugMode) {
+                                      print('Error: $error');
+                                    }
+                                  }
+                                }
+
                                 AwesomeDialog(
                                   context: context,
                                   dialogType: DialogType.QUESTION,
                                   animType: AnimType.BOTTOMSLIDE,
                                   headerAnimationLoop: false,
-                                  body: const Text('Odomknúť tento bicykel?'),
+                                  body: Text('Odomknúť bicykel ${bike.id}?'),
                                   btnOkText: 'Áno',
                                   btnOkOnPress: () {
                                     if (_user.actualRide == null) {
@@ -506,10 +574,12 @@ class _MapScreenState extends State<MapScreen>
                                 margin: const EdgeInsets.symmetric(
                                     vertical: 1, horizontal: 4),
                                 child: ListTile(
-                                    leading: const Icon(
-                                      Icons.directions_bike,
-                                      color: Colors.blue,
-                                      size: 54,
+                                    leading: const FittedBox(
+                                      child: Icon(
+                                        Icons.directions_bike,
+                                        color: Colors.blue,
+                                        size: 54,
+                                      ),
                                     ),
                                     title: Text(bike.id,
                                         style: const TextStyle(
@@ -538,7 +608,7 @@ class _MapScreenState extends State<MapScreen>
 
   Future<BitmapDescriptor> _getMarkerBitmap(int size,
       {String? text, required Color color}) async {
-    if (kIsWeb) size = (size / 2).floor();
+    if (kIsWeb) size = (size / 3).floor();
 
     final PictureRecorder pictureRecorder = PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);

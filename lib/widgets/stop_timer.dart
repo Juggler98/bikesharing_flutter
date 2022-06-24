@@ -8,7 +8,7 @@ class StopTimer extends StatefulWidget {
   const StopTimer(this.start, {Key? key}) : super(key: key);
 
   @override
-  _StopTimerState createState() => _StopTimerState();
+  State<StopTimer> createState() => _StopTimerState();
 }
 
 class _StopTimerState extends State<StopTimer> {
@@ -39,9 +39,9 @@ class _StopTimerState extends State<StopTimer> {
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
     if (hours > 0) {
-      text += twoDigits(hours) + ':';
+      text += '${twoDigits(hours)}:';
     }
-    text += twoDigits(minutes) + ':' + twoDigits(seconds);
+    text += '${twoDigits(minutes)}:${twoDigits(seconds)}';
     return text;
   }
 

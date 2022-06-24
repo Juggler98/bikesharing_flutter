@@ -30,53 +30,59 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: history.map((history) {
-        return InkWell(
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (ctx) => HistoryDetailScreen(history: history),
-            ));
-          },
-          child: Card(
-            elevation: 0,
-            margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
-            child: ListTile(
-              leading: Icon(
-                history.vehicleType == VehicleType.bike
-                    ? Icons.directions_bike
-                    : Icons.electric_scooter,
-                color: Colors.blue,
-                size: 30,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('História jázd'),
+        backgroundColor: Colors.green,
+      ),
+      body: ListView(
+        children: history.map((history) {
+          return InkWell(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (ctx) => HistoryDetailScreen(history: history),
+              ));
+            },
+            child: Card(
+              elevation: 0,
+              margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 4),
+              child: ListTile(
+                leading: Icon(
+                  history.vehicleType == VehicleType.bike
+                      ? Icons.directions_bike
+                      : Icons.electric_scooter,
+                  color: Colors.blue,
+                  size: 30,
+                ),
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        '${history.locationEnd != null ? (Geolocator.distanceBetween(history.locationStart.latitude, history.locationStart.longitude, history.locationEnd!.latitude, history.locationEnd!.longitude) / 100).ceil() / 10 : '?'} km - ${history.endDate != null ? history.endDate?.difference(history.startDate).inMinutes : DateTime.now().difference(history.startDate).inMinutes} min',
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${DateFormat.yMd(Localizations.localeOf(context).toString()).format(history.startDate)} ${DateFormat.Hm(Localizations.localeOf(context).toString()).format(history.startDate)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+                trailing: history.price != null
+                    ? Text(
+                        '${history.price! / 100} €',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
               ),
-              title: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                      '${history.locationEnd != null ? (Geolocator.distanceBetween(history.locationStart.latitude, history.locationStart.longitude, history.locationEnd!.latitude, history.locationEnd!.longitude) / 100).ceil() / 10 : '?'} km - ${history.endDate != null ? history.endDate?.difference(history.startDate).inMinutes : DateTime.now().difference(history.startDate).inMinutes} min',
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${DateFormat.yMd(Localizations.localeOf(context).toString()).format(history.startDate)} ${DateFormat.Hm(Localizations.localeOf(context).toString()).format(history.startDate)}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-              trailing: history.price != null
-                  ? Text(
-                      '${history.price! / 100} €',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 }
