@@ -20,6 +20,7 @@ import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
@@ -42,7 +43,7 @@ class _MapScreenState extends State<MapScreen>
   Set<Marker> markers = {};
 
   var _isMapLoading = false;
-  var _areMarkersLoading = false;
+  var _areMarkersLoading = true;
 
   final _user = User(
     id: '0',
@@ -50,16 +51,72 @@ class _MapScreenState extends State<MapScreen>
   );
 
   List<Stand> items = [
-    for (int i = 1; i < 10; i++)
-      Stand(
-          id: '$i',
-          location: LatLng(49.2 + i * 0.001, 18.7 + i * 0.001),
-          capacity: 10),
+    // for (int i = 1; i < 10; i++)
+    //   Stand(
+    //       id: '$i',
+    //       location: LatLng(49.2 + i * 0.001, 18.7 + i * 0.001),
+    //       capacity: 10),
   ];
+
+  void _loadStandsFromServer() async {
+    //TODO: Change address if necessary
+    final url = Uri.parse('http://172.20.10.2:3001/api/v1/stations');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
+      final stands = jsonResponse['bikes'];
+      var count = 0;
+      for (var stand in stands) {
+        items.add(Stand(
+          id: '${count++}',
+          location: LatLng(
+            stand[4],
+            stand[5],
+          ),
+          capacity: 10,
+        ));
+      }
+
+      final random = Random();
+      for (int i = 1; i < 8; i++) {
+        Bike bike = Bike(id: '${random.nextInt(1000)}');
+        items[0].addBike(bike);
+      }
+      for (int i = 1; i < 4; i++) {
+        Bike bike = Bike(id: '${random.nextInt(1000)}');
+        items[1].addBike(bike);
+      }
+      for (int i = 1; i < 10; i++) {
+        Bike bike = Bike(id: '${random.nextInt(1000)}');
+        items[3].addBike(bike);
+      }
+      for (int i = 1; i < 3; i++) {
+        Bike bike = Bike(id: '${random.nextInt(1000)}');
+        items[6].addBike(bike);
+      }
+      for (int i = 1; i < 2; i++) {
+        Bike bike = Bike(id: '${random.nextInt(1000)}');
+        items[7].addBike(bike);
+      }
+
+      _loadStands();
+      if (kDebugMode) {
+        print('Response body: ${response.body}');
+      }
+    } else {
+      if (kDebugMode) {
+        print('Request failed with status: ${response.statusCode}.');
+      }
+    }
+    setState(() {
+      _areMarkersLoading = false;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadStandsFromServer();
     SharedPreferences.getInstance().then((value) {
       _prefs = value;
       if (_prefs!.containsKey('mapData')) {
@@ -69,29 +126,6 @@ class _MapScreenState extends State<MapScreen>
     });
     if (mounted) {
       _manager = _initClusterManager();
-    }
-
-    final random = Random();
-
-    for (int i = 1; i < 8; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
-      items[0].addBike(bike);
-    }
-    for (int i = 1; i < 4; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
-      items[1].addBike(bike);
-    }
-    for (int i = 1; i < 10; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
-      items[3].addBike(bike);
-    }
-    for (int i = 1; i < 3; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
-      items[6].addBike(bike);
-    }
-    for (int i = 1; i < 2; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
-      items[7].addBike(bike);
     }
   }
 
@@ -275,7 +309,7 @@ class _MapScreenState extends State<MapScreen>
                             }
                             _googleMapController = controller;
                             if (mounted) _toLatestPosition();
-                            _loadStands();
+                            //_loadStands();
                             if (mounted) _askForLocation();
                             _isMapLoading = false;
                             if (mounted && _manager != null) {
@@ -305,7 +339,8 @@ class _MapScreenState extends State<MapScreen>
               ),
               if (_areMarkersLoading)
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 42.0, horizontal: 8),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Card(
@@ -314,7 +349,7 @@ class _MapScreenState extends State<MapScreen>
                       child: const Padding(
                         padding: EdgeInsets.all(4),
                         child: Text(
-                          'Loading',
+                          'Načítavanie',
                           style: TextStyle(color: Colors.white),
                         ),
                       ),

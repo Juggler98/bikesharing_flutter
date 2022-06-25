@@ -19,7 +19,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _setupDynamicLinks();
+    if (!kIsWeb) {
+      _setupDynamicLinks();
+    }
   }
 
   void _setupDynamicLinks() async {

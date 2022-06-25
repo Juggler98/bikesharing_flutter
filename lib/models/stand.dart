@@ -9,11 +9,7 @@ class Stand extends ClusterItem {
   final List<Bike> bikes = <Bike>[];
   final int capacity;
 
-  Stand({
-    required this.id,
-    required this.location,
-    required this.capacity
-  });
+  Stand({required this.id, required this.location, required this.capacity});
 
   void addBike(Bike bike) {
     bikes.add(bike);
@@ -23,4 +19,8 @@ class Stand extends ClusterItem {
     return bikes.length;
   }
 
+  @override
+  String toString() {
+    return '$id $location $capacity';
+  }
 }
