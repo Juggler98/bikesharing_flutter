@@ -1,10 +1,9 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:bikesharing/helpers/static_methods.dart';
 import 'package:bikesharing/main_drawer.dart';
 import 'package:bikesharing/navigation/map_screen.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -44,26 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openDialog(String? id) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.QUESTION,
-      animType: AnimType.BOTTOMSLIDE,
-      headerAnimationLoop: false,
-      body: Text('Odomknúť bicykel $id?'),
-      btnOkText: 'Áno',
-      btnOkOnPress: () {
-        // Ride ride = Ride(
-        //     id: Random().nextInt(100).toString(),
-        //     startDate: DateTime.now(),
-        //     locationStart: stand.location,
-        //     vehicleType: VehicleType.bike);
-        Fluttertoast.showToast(
-          msg: 'Bicykel bol odomknutý',
-          toastLength: Toast.LENGTH_LONG,
-          backgroundColor: Colors.black54,
-        );
-      },
-    ).show();
+    StaticMethods.openDialog(id, context);
   }
 
   @override

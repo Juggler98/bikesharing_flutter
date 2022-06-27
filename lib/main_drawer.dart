@@ -45,6 +45,15 @@ class MainDrawer extends StatelessWidget {
             const Divider(),
             ListTile(
               leading: const Icon(
+                Icons.outlined_flag,
+                color: Colors.black54,
+              ),
+              title: const Text('Nahlásiť problém'),
+              onTap: () async {},
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(
                 Icons.info_outline,
                 color: Colors.black54,
               ),

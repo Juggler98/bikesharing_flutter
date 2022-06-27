@@ -10,7 +10,8 @@ import 'package:bikesharing/models/ride.dart';
 import 'package:bikesharing/models/stand.dart';
 import 'package:bikesharing/models/user.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
-import 'package:bikesharing/screens/scanner_screen.dart';
+import 'package:bikesharing/widgets/code_button.dart';
+import 'package:bikesharing/widgets/scanner_button.dart';
 import 'package:bikesharing/widgets/stop_timer.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
@@ -366,36 +367,7 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ),
                 ),
-              if (!kIsWeb)
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.settings_overscan),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (ctx) => ScannerScreen(),
-                          ),
-                        );
-                      },
-                      label: const Text(
-                        'Naskenovať',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      style: ButtonStyle(
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30)),
-                        ),
-                        padding: MaterialStateProperty.all(
-                            const EdgeInsets.symmetric(
-                                horizontal: 42.0, vertical: 12.0)),
-                      ),
-                    ),
-                  ),
-                )
+              if (!kIsWeb) const ScannerButton() else const CodeButton(),
             ],
           ),
         ),

@@ -1,7 +1,5 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:bikesharing/widgets/code_dialog.dart';
+import 'package:bikesharing/widgets/code_button.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:url_launcher/url_launcher.dart' as url;
 
@@ -9,30 +7,6 @@ class ScannerScreen extends StatelessWidget {
   ScannerScreen({Key? key}) : super(key: key);
 
   final cameraController = MobileScannerController();
-
-  void _openDialog(String? id, BuildContext context) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.QUESTION,
-      animType: AnimType.BOTTOMSLIDE,
-      headerAnimationLoop: false,
-      body: Text('Odomknúť bicykel $id?'),
-      btnOkText: 'Áno',
-      btnOkOnPress: () {
-        // Ride ride = Ride(
-        //     id: Random().nextInt(100).toString(),
-        //     startDate: DateTime.now(),
-        //     locationStart: stand.location,
-        //     vehicleType: VehicleType.bike);
-        Fluttertoast.showToast(
-          msg: 'Bicykel bol odomknutý',
-          toastLength: Toast.LENGTH_LONG,
-          backgroundColor: Colors.black54,
-        );
-        Navigator.of(context).pop();
-      },
-    ).show();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,39 +64,7 @@ class ScannerScreen extends StatelessWidget {
                     }
                   }
                 }),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) =>
-                          CodeDialog(context, ctx, true, 'Zadaj kód'),
-                    ).then((value) {
-                      if (value != null) {
-                        _openDialog(value, context);
-                      }
-                    });
-                  },
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.black45),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30)),
-                    ),
-                    padding: MaterialStateProperty.all(
-                        const EdgeInsets.symmetric(
-                            horizontal: 42.0, vertical: 12.0)),
-                  ),
-                  child: const Text(
-                    'Zadať kód',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-            ),
+            const CodeButton(),
           ],
         ));
   }
