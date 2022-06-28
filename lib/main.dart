@@ -1,5 +1,5 @@
 import 'package:bikesharing/firebase_options.dart';
-import 'package:bikesharing/navigation/home_screen.dart';
+import 'package:bikesharing/screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

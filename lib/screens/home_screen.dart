@@ -1,6 +1,6 @@
 import 'package:bikesharing/helpers/static_methods.dart';
 import 'package:bikesharing/main_drawer.dart';
-import 'package:bikesharing/navigation/map_screen.dart';
+import 'package:bikesharing/screens/map_screen.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

@@ -5,9 +5,10 @@ import 'dart:ui';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:badges/badges.dart';
+import 'package:bikesharing/constants.dart';
 import 'package:bikesharing/models/bike.dart';
-import 'package:bikesharing/models/ride.dart';
-import 'package:bikesharing/models/stand.dart';
+import 'package:bikesharing/models/rent.dart';
+import 'package:bikesharing/models/station.dart';
 import 'package:bikesharing/models/user.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
 import 'package:bikesharing/widgets/code_button.dart';
@@ -51,31 +52,31 @@ class _MapScreenState extends State<MapScreen>
     email: 'test',
   );
 
-  List<Stand> items = [
+  List<Station> items = [
     for (int i = 1; i < 10; i++)
-      Stand(
-          id: '$i',
+      Station(
+          name: 'S',
+          id: i,
           location: LatLng(49.2 + i * 0.001, 18.7 + i * 0.001),
           capacity: 10),
   ];
 
   void _loadStandsFromServer() async {
     //TODO: Change address if necessary
-    final url = Uri.parse('http://172.20.10.2:3001/api/v1/stations');
+    final url = Uri.parse('http://$ipAddress:$port/api/v1/stations');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
-        final stands = jsonResponse['bikes'];
-        var count = 0;
-        for (var stand in stands) {
-          items.add(Stand(
-            id: '${count++}',
+        final jsonResponse = jsonDecode(response.body) as List<dynamic>;
+        for (var stand in jsonResponse) {
+          items.add(Station(
+            name: stand['name'],
+            id: stand['id'],
             location: LatLng(
-              stand[4],
-              stand[5],
+              stand['latitude'],
+              stand['longitude'],
             ),
-            capacity: 10,
+            capacity: stand['capacity'],
           ));
         }
         _loadStands();
@@ -102,23 +103,23 @@ class _MapScreenState extends State<MapScreen>
   void _addTempBikes() {
     final random = Random();
     for (int i = 1; i < 8; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      Bike bike = Bike(id: random.nextInt(1000));
       items[0].addBike(bike);
     }
     for (int i = 1; i < 4; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      Bike bike = Bike(id: random.nextInt(1000));
       items[1].addBike(bike);
     }
     for (int i = 1; i < 10; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      Bike bike = Bike(id: random.nextInt(1000));
       items[3].addBike(bike);
     }
     for (int i = 1; i < 3; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      Bike bike = Bike(id: random.nextInt(1000));
       items[6].addBike(bike);
     }
     for (int i = 1; i < 2; i++) {
-      Bike bike = Bike(id: '${random.nextInt(1000)}');
+      Bike bike = Bike(id: random.nextInt(1000));
       items[7].addBike(bike);
     }
   }
@@ -146,7 +147,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   ClusterManager _initClusterManager() {
-    return ClusterManager<Stand>(items, _updateMarkers,
+    return ClusterManager<Station>(items, _updateMarkers,
         markerBuilder: _markerBuilder,
         extraPercent: 0.2,
         stopClusteringZoom: 12.0);
@@ -371,7 +372,7 @@ class _MapScreenState extends State<MapScreen>
             ],
           ),
         ),
-        if (_user.actualRide != null)
+        if (_user.actualRides.isNotEmpty)
           Container(
             width: MediaQuery.of(context).size.width,
             height: 60,
@@ -390,7 +391,7 @@ class _MapScreenState extends State<MapScreen>
                   ),
                 ),
                 const Spacer(),
-                StopTimer(_user.actualRide!.startDate),
+                StopTimer(_user.actualRides.first.startDate),
                 const Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -410,7 +411,7 @@ class _MapScreenState extends State<MapScreen>
                             btnOkText: 'Áno',
                             btnOkOnPress: () {
                               setState(() {
-                                _user.actualRide = null;
+                                _user.actualRides.removeAt(0);
                               });
                               Fluttertoast.showToast(
                                 msg: 'Jazda ukončená',
@@ -456,13 +457,13 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  Future<Marker> Function(Cluster<Stand>) get _markerBuilder =>
+  Future<Marker> Function(Cluster<Station>) get _markerBuilder =>
       (cluster) async {
         return Marker(
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
           onTap: () {
-            Stand stand = cluster.items.first;
+            Station stand = cluster.items.first;
             showModalBottomSheet(
                 context: context,
                 builder: (BuildContext buildContext) {
@@ -560,14 +561,17 @@ class _MapScreenState extends State<MapScreen>
                                   body: Text('Odomknúť bicykel ${bike.id}?'),
                                   btnOkText: 'Áno',
                                   btnOkOnPress: () {
-                                    if (_user.actualRide == null) {
-                                      Ride ride = Ride(
-                                          id: Random().nextInt(100).toString(),
+                                    if (_user.actualRides.isEmpty) {
+                                      Rent ride = Rent(
+                                          bike: bike,
+                                          id: Random().nextInt(100),
                                           startDate: DateTime.now(),
                                           locationStart: stand.location,
                                           vehicleType: VehicleType.bike);
                                       setState(() {
-                                        _user.actualRide = ride;
+                                        _user.actualRides.add(ride);
+                                        stand.bikes.removeWhere(
+                                            (element) => element.id == bike.id);
                                       });
                                       Fluttertoast.showToast(
                                         msg: 'Bicykel bol odomknutý',
@@ -598,7 +602,7 @@ class _MapScreenState extends State<MapScreen>
                                         size: 54,
                                       ),
                                     ),
-                                    title: Text(bike.id,
+                                    title: Text(bike.id.toString(),
                                         style: const TextStyle(
                                             fontSize: 24,
                                             fontWeight: FontWeight.bold))),

@@ -1,7 +1,7 @@
-import 'package:bikesharing/screens/history_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'constants.dart';
+import 'screens/history/history_screen.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({Key? key}) : super(key: key);

@@ -1,20 +1,23 @@
 import 'dart:math';
 
-import 'package:bikesharing/models/ride.dart';
+import 'package:bikesharing/models/rent.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
-import 'package:bikesharing/screens/history_detail_screen.dart';
+import 'package:bikesharing/screens/history/history_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/bike.dart';
+
 class HistoryScreen extends StatelessWidget {
   HistoryScreen({Key? key}) : super(key: key);
 
-  final List<Ride> history = [
+  final List<Rent> history = [
     for (int i = 1; i < 100; i++)
-      Ride(
-        id: '$i',
+      Rent(
+        bike: Bike(id: 1),
+        id: i,
         locationStart: LatLng(
             49.21 + Random().nextDouble(), 18.71 + Random().nextDouble()),
         locationEnd: LatLng(
@@ -59,7 +62,7 @@ class HistoryScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                        '${history.locationEnd != null ? (Geolocator.distanceBetween(history.locationStart.latitude, history.locationStart.longitude, history.locationEnd!.latitude, history.locationEnd!.longitude) / 100).ceil() / 10 : '?'} km - ${history.endDate != null ? history.endDate?.difference(history.startDate).inMinutes : DateTime.now().difference(history.startDate).inMinutes} min',
+                        '${history.locationEnd != null ? (Geolocator.distanceBetween(history.standStart == null ? history.locationStart!.latitude : history.standStart!.location.latitude, history.standStart == null ? history.locationStart!.longitude : history.standStart!.location.longitude, history.standEnd == null ? history.locationEnd!.latitude : history.standEnd!.location.latitude, history.standEnd == null ? history.locationEnd!.longitude : history.standEnd!.location.longitude) / 100).ceil() / 10 : '?'} km - ${history.endDate != null ? history.endDate?.difference(history.startDate).inMinutes : DateTime.now().difference(history.startDate).inMinutes} min',
                         style: const TextStyle(
                             fontSize: 12, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 2),

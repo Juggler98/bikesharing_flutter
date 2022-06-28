@@ -1,10 +1,15 @@
+import 'package:bikesharing/models/station.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 class Bike {
-  final String id;
-  final bool broken;
+  final int id;
+  final LatLng? location;
+  final Station? stand;
 
   Bike({
     required this.id,
-    this.broken = false,
+    this.location,
+    this.stand,
   });
 
 }

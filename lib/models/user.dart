@@ -1,13 +1,12 @@
-import 'package:bikesharing/models/ride.dart';
+import 'package:bikesharing/models/rent.dart';
 
 class User {
   final String id;
   final String email;
-  Ride? actualRide;
+  List<Rent> actualRides = [];
 
   User({
     required this.id,
     required this.email,
-    this.actualRide,
   });
 }
