@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:badges/badges.dart';
 import 'package:bikesharing/constants.dart';
+import 'package:bikesharing/helpers/app.dart';
 import 'package:bikesharing/models/bike.dart';
 import 'package:bikesharing/models/rent.dart';
 import 'package:bikesharing/models/station.dart';
@@ -47,19 +48,14 @@ class _MapScreenState extends State<MapScreen>
   var _isMapLoading = false;
   var _areMarkersLoading = true;
 
-  final _user = User(
-    id: '0',
-    email: 'test',
-  );
-
-  List<Station> items = [
-    for (int i = 1; i < 10; i++)
-      Station(
-          name: 'S',
-          id: i,
-          location: LatLng(49.2 + i * 0.001, 18.7 + i * 0.001),
-          capacity: 10),
-  ];
+  // List<Station> items = [
+  //   for (int i = 1; i < 10; i++)
+  //     Station(
+  //         name: 'S',
+  //         id: i,
+  //         location: LatLng(49.2 + i * 0.001, 18.7 + i * 0.001),
+  //         capacity: 10),
+  // ];
 
   void _loadStandsFromServer() async {
     //TODO: Change address if necessary
@@ -68,16 +64,30 @@ class _MapScreenState extends State<MapScreen>
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body) as List<dynamic>;
-        for (var stand in jsonResponse) {
-          items.add(Station(
-            name: stand['name'],
-            id: stand['id'],
+        for (var s in jsonResponse) {
+          final bikes = s['bikes'];
+
+          final station = Station(
+            name: s['name'],
+            id: s['id'],
             location: LatLng(
-              stand['latitude'],
-              stand['longitude'],
+              s['latitude'],
+              s['longitude'],
             ),
-            capacity: stand['capacity'],
-          ));
+            capacity: s['capacity'],
+          );
+
+          for (var b in bikes) {
+            final bike = Bike(
+              id: b['id_bike'],
+              stand: station,
+              location: LatLng(b['lat'], b['lon']),
+            );
+            station.addBike(bike);
+            App.bikes.add(bike);
+          }
+
+          App.stations.add(station);
         }
         _loadStands();
         if (kDebugMode) {
@@ -100,35 +110,35 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  void _addTempBikes() {
-    final random = Random();
-    for (int i = 1; i < 8; i++) {
-      Bike bike = Bike(id: random.nextInt(1000));
-      items[0].addBike(bike);
-    }
-    for (int i = 1; i < 4; i++) {
-      Bike bike = Bike(id: random.nextInt(1000));
-      items[1].addBike(bike);
-    }
-    for (int i = 1; i < 10; i++) {
-      Bike bike = Bike(id: random.nextInt(1000));
-      items[3].addBike(bike);
-    }
-    for (int i = 1; i < 3; i++) {
-      Bike bike = Bike(id: random.nextInt(1000));
-      items[6].addBike(bike);
-    }
-    for (int i = 1; i < 2; i++) {
-      Bike bike = Bike(id: random.nextInt(1000));
-      items[7].addBike(bike);
-    }
-  }
+  // void _addTempBikes() {
+  //   final random = Random();
+  //   for (int i = 1; i < 8; i++) {
+  //     Bike bike = Bike(id: random.nextInt(1000));
+  //     items[0].addBike(bike);
+  //   }
+  //   for (int i = 1; i < 4; i++) {
+  //     Bike bike = Bike(id: random.nextInt(1000));
+  //     items[1].addBike(bike);
+  //   }
+  //   for (int i = 1; i < 10; i++) {
+  //     Bike bike = Bike(id: random.nextInt(1000));
+  //     items[3].addBike(bike);
+  //   }
+  //   for (int i = 1; i < 3; i++) {
+  //     Bike bike = Bike(id: random.nextInt(1000));
+  //     items[6].addBike(bike);
+  //   }
+  //   for (int i = 1; i < 2; i++) {
+  //     Bike bike = Bike(id: random.nextInt(1000));
+  //     items[7].addBike(bike);
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
     _loadStandsFromServer();
-    _addTempBikes();
+    //_addTempBikes();
     SharedPreferences.getInstance().then((value) {
       _prefs = value;
       if (_prefs!.containsKey('mapData')) {
@@ -147,7 +157,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   ClusterManager _initClusterManager() {
-    return ClusterManager<Station>(items, _updateMarkers,
+    return ClusterManager<Station>(App.stations, _updateMarkers,
         markerBuilder: _markerBuilder,
         extraPercent: 0.2,
         stopClusteringZoom: 12.0);
@@ -266,7 +276,7 @@ class _MapScreenState extends State<MapScreen>
       return;
     }
 
-    _manager?.setItems(items.toList());
+    _manager?.setItems(App.stations.toList());
 
     if (mounted) {
       setState(() {
@@ -282,6 +292,11 @@ class _MapScreenState extends State<MapScreen>
       _googleMapController?.dispose();
     }
     markers.clear();
+  }
+
+  void _openDialog(int id) {
+    App.openDialog(id, context);
+    setState(() {});
   }
 
   @override
@@ -372,7 +387,7 @@ class _MapScreenState extends State<MapScreen>
             ],
           ),
         ),
-        if (_user.actualRides.isNotEmpty)
+        if (App.user.actualRides.isNotEmpty)
           Container(
             width: MediaQuery.of(context).size.width,
             height: 60,
@@ -391,7 +406,7 @@ class _MapScreenState extends State<MapScreen>
                   ),
                 ),
                 const Spacer(),
-                StopTimer(_user.actualRides.first.startDate),
+                StopTimer(App.user.actualRides.first.startDate),
                 const Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -411,7 +426,7 @@ class _MapScreenState extends State<MapScreen>
                             btnOkText: 'Áno',
                             btnOkOnPress: () {
                               setState(() {
-                                _user.actualRides.removeAt(0);
+                                App.user.actualRides.removeAt(0);
                               });
                               Fluttertoast.showToast(
                                 msg: 'Jazda ukončená',
@@ -561,7 +576,7 @@ class _MapScreenState extends State<MapScreen>
                                   body: Text('Odomknúť bicykel ${bike.id}?'),
                                   btnOkText: 'Áno',
                                   btnOkOnPress: () {
-                                    if (_user.actualRides.isEmpty) {
+                                    if (App.user.actualRides.isEmpty) {
                                       Rent ride = Rent(
                                           bike: bike,
                                           id: Random().nextInt(100),
@@ -569,7 +584,8 @@ class _MapScreenState extends State<MapScreen>
                                           locationStart: stand.location,
                                           vehicleType: VehicleType.bike);
                                       setState(() {
-                                        _user.actualRides.add(ride);
+                                        App.user.actualRides.add(ride);
+                                        bike.stand = null;
                                         stand.bikes.removeWhere(
                                             (element) => element.id == bike.id);
                                       });

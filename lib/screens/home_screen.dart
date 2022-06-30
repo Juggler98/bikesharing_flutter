@@ -1,4 +1,4 @@
-import 'package:bikesharing/helpers/static_methods.dart';
+import 'package:bikesharing/helpers/app.dart';
 import 'package:bikesharing/main_drawer.dart';
 import 'package:bikesharing/screens/map_screen.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -26,12 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _setupDynamicLinks() async {
     final initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
     if (initialLink != null) {
-      final id = initialLink.link.queryParameters['id'];
+      final id = int.parse(initialLink.link.queryParameters['id'].toString());
       _openDialog(id);
     }
 
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-      final id = dynamicLinkData.link.queryParameters['id'];
+      final id = int.parse(dynamicLinkData.link.queryParameters['id'].toString());
       if (mounted) {
         _openDialog(id);
       }
@@ -42,8 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _openDialog(String? id) {
-    StaticMethods.openDialog(id, context);
+  void _openDialog(int id) {
+    App.openDialog(id, context);
   }
 
   @override

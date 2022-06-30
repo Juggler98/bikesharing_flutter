@@ -21,7 +21,7 @@ class Rent {
     required this.startDate,
     required this.bike,
     this.endDate,
-    required this.locationStart,
+    this.locationStart,
     this.locationEnd,
     this.price,
     this.standStart,

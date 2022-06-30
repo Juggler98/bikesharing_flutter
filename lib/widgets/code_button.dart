@@ -1,4 +1,4 @@
-import 'package:bikesharing/helpers/static_methods.dart';
+import 'package:bikesharing/helpers/app.dart';
 import 'package:flutter/material.dart';
 
 import 'code_dialog.dart';
@@ -19,7 +19,7 @@ class CodeButton extends StatelessWidget {
               builder: (ctx) => CodeDialog(context, ctx, false, 'Zadaj kód'),
             ).then((value) {
               if (value != null) {
-                StaticMethods.openDialog(value, context);
+                App.openDialog(value, context);
               }
             });
           },
