@@ -1,9 +1,10 @@
 import 'package:bikesharing/models/rent.dart';
 
 class User {
-  final String id;
+  String id;
   final String email;
   List<Rent> actualRides = [];
+  List<Rent> allRides = [];
 
   User({
     required this.id,

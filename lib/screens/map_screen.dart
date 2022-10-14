@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
@@ -10,7 +9,6 @@ import 'package:bikesharing/helpers/app.dart';
 import 'package:bikesharing/models/bike.dart';
 import 'package:bikesharing/models/rent.dart';
 import 'package:bikesharing/models/station.dart';
-import 'package:bikesharing/models/user.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
 import 'package:bikesharing/widgets/code_button.dart';
 import 'package:bikesharing/widgets/scanner_button.dart';
@@ -57,59 +55,6 @@ class _MapScreenState extends State<MapScreen>
   //         capacity: 10),
   // ];
 
-  void _loadStandsFromServer() async {
-    //TODO: Change address if necessary
-    final url = Uri.parse('http://$ipAddress:$port/api/v1/stations');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body) as List<dynamic>;
-        for (var s in jsonResponse) {
-          final bikes = s['bikes'];
-
-          final station = Station(
-            name: s['name'],
-            id: s['id'],
-            location: LatLng(
-              s['latitude'],
-              s['longitude'],
-            ),
-            capacity: s['capacity'],
-          );
-
-          for (var b in bikes) {
-            final bike = Bike(
-              id: b['id_bike'],
-              stand: station,
-              location: LatLng(b['lat'], b['lon']),
-            );
-            station.addBike(bike);
-            App.bikes.add(bike);
-          }
-
-          App.stations.add(station);
-        }
-        _loadStands();
-        if (kDebugMode) {
-          print('Response body: ${response.body}');
-        }
-      } else {
-        if (kDebugMode) {
-          print('Request failed with status: ${response.statusCode}.');
-        }
-      }
-    } catch (error) {
-      if (kDebugMode) {
-        print(error);
-      }
-    }
-    if (mounted) {
-      setState(() {
-        _areMarkersLoading = false;
-      });
-    }
-  }
-
   // void _addTempBikes() {
   //   final random = Random();
   //   for (int i = 1; i < 8; i++) {
@@ -137,8 +82,11 @@ class _MapScreenState extends State<MapScreen>
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      //_addTempBikes();
+    }
     _loadStandsFromServer();
-    //_addTempBikes();
+    _loadRide();
     SharedPreferences.getInstance().then((value) {
       _prefs = value;
       if (_prefs!.containsKey('mapData')) {
@@ -151,9 +99,124 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void _loadStandsFromServer() async {
+    //TODO: Change address if necessary
+    final url = Uri.parse('http://$ipAddress:$port/api/v1/stations');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body) as List<dynamic>;
+        App.bikes.clear();
+        App.stations.clear();
+        for (var s in jsonResponse) {
+          final bikes = s['bikes'];
+
+          final station = Station(
+            name: s['name'],
+            id: s['id'],
+            location: LatLng(
+              s['latitude'],
+              s['longitude'],
+            ),
+            capacity: s['capacity'],
+          );
+
+          for (var b in bikes) {
+            final bike = Bike(
+              id: b['id_bike'],
+              stand: station,
+              location: LatLng(b['lat'], b['lon']),
+            );
+            station.addBike(bike);
+            App.bikes.add(bike);
+          }
+
+          App.stations.add(station);
+        }
+        _loadStands();
+        if (kDebugMode) {
+          //print('Response body: ${response.body}');
+        }
+      } else {
+        if (kDebugMode) {
+          print('Request failed with status: ${response.statusCode}.');
+        }
+      }
+    } catch (error) {
+      if (kDebugMode) {
+        print(error);
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _areMarkersLoading = false;
+      });
+    }
+  }
+
+  void _loadRide() async {
+    final url = Uri.parse('http://$ipAddress:$port/api/v1/rent/actualRent/1');
+    try {
+      final response = await http.get(url);
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        print(response.body);
+
+        final jsonResponse = jsonDecode(response.body) as List<dynamic>;
+
+        final f = jsonResponse.first;
+        print(jsonResponse.length);
+
+        LatLng locStart = const LatLng(1.0, 1.0);
+        if (f['start_lat'] != null) {
+          locStart = LatLng(f['start_lat'] * 1.0, f['start_lon'] * 1.0);
+        }
+        if (f['id_station'] != null) {
+          try {
+            final startStation = App.stations
+                .firstWhere((element) => element.id == f['id_station']);
+            locStart = LatLng(startStation.location.latitude,
+                startStation.location.longitude);
+          } catch (error) {
+            if (kDebugMode) {
+              print(error);
+            }
+          }
+        }
+
+        Bike? bike;
+
+        final url =
+            Uri.parse('http://$ipAddress:$port/api/v1/bikes/${f['id_bike']}');
+        try {
+          final response = await http.get(url);
+          if (response.statusCode == 200) {
+            final jsonResponse = jsonDecode(response.body);
+            bike = Bike(id: jsonResponse['bike']['id_bike']);
+          }
+        } catch (error) {
+          if (kDebugMode) {
+            print(error);
+          }
+        }
+
+        Rent ride = Rent(
+          bike: bike!,
+          id: f['id_rent'],
+          startDate: DateTime.parse(f['start_rent_date']),
+          locationStart: locStart,
+          vehicleType: VehicleType.bike,
+        );
+
+        setState(() {
+          App.user.actualRides.add(ride);
+        });
+      }
+    } catch (error) {
+      if (kDebugMode) {
+        print(error);
+      }
+    }
   }
 
   ClusterManager _initClusterManager() {
@@ -203,10 +266,6 @@ class _MapScreenState extends State<MapScreen>
       }
     }
   }
-
-  // void _showBottomShet() {
-  //
-  // }
 
   void _askForLocation() async {
     try {
@@ -297,6 +356,95 @@ class _MapScreenState extends State<MapScreen>
   void _openDialog(int id) {
     App.openDialog(id, context);
     setState(() {});
+  }
+
+  void _stopRide() {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.QUESTION,
+      animType: AnimType.BOTTOMSLIDE,
+      headerAnimationLoop: false,
+      body: const Text('Ukončiť jazdu?'),
+      btnOkText: 'Áno',
+      btnOkOnPress: () async {
+        final url = Uri.parse('http://$ipAddress:$port/api/v1/rent/endRent');
+
+        final response = await http.post(
+          url,
+          body: {
+            "id_rent": App.user.actualRides.first.id.toString(),
+            "id_station": "17",
+          },
+        );
+
+        print(App.user.actualRides.first.id);
+
+        setState(() {
+          App.user.actualRides.removeAt(0);
+        });
+        _loadStandsFromServer();
+        Fluttertoast.showToast(
+          msg: 'Jazda ukončená',
+          toastLength: Toast.LENGTH_LONG,
+          backgroundColor: Colors.black54,
+        );
+      },
+    ).show();
+  }
+
+  void _unlockBike(BuildContext context, Bike bike, Station stand) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.QUESTION,
+      animType: AnimType.BOTTOMSLIDE,
+      headerAnimationLoop: false,
+      body: Text('Odomknúť bicykel ${bike.id}?'),
+      btnOkText: 'Áno',
+      btnOkOnPress: () async {
+        if (App.user.actualRides.isEmpty) {
+          final url = Uri.parse('http://$ipAddress:$port/api/v1/rent/new');
+          print(bike.id);
+          final response = await http.post(
+            url,
+            body: {
+              "id_bike": bike.id.toString(),
+              "id_user": "1",
+            },
+          );
+
+          print(bike.id);
+
+          final jsonResponse =
+              jsonDecode(response.body) as Map<String, dynamic>;
+
+          Rent ride = Rent(
+            bike: bike,
+            id: jsonResponse['id_rent'],
+            startDate: DateTime.now(),
+            locationStart: stand.location,
+            vehicleType: VehicleType.bike,
+          );
+
+          setState(() {
+            App.user.actualRides.add(ride);
+            bike.stand = null;
+            stand.bikes.removeWhere((element) => element.id == bike.id);
+          });
+          Fluttertoast.showToast(
+            msg: 'Bicykel bol odomknutý',
+            toastLength: Toast.LENGTH_LONG,
+            backgroundColor: Colors.black54,
+          );
+        } else {
+          Fluttertoast.showToast(
+            msg: 'Môžeš si požičať len jeden bicykel',
+            toastLength: Toast.LENGTH_LONG,
+            backgroundColor: Colors.black54,
+          );
+        }
+        Navigator.of(context).pop();
+      },
+    ).show();
   }
 
   @override
@@ -417,24 +565,7 @@ class _MapScreenState extends State<MapScreen>
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          AwesomeDialog(
-                            context: context,
-                            dialogType: DialogType.QUESTION,
-                            animType: AnimType.BOTTOMSLIDE,
-                            headerAnimationLoop: false,
-                            body: const Text('Ukončiť jazdu?'),
-                            btnOkText: 'Áno',
-                            btnOkOnPress: () {
-                              setState(() {
-                                App.user.actualRides.removeAt(0);
-                              });
-                              Fluttertoast.showToast(
-                                msg: 'Jazda ukončená',
-                                toastLength: Toast.LENGTH_LONG,
-                                backgroundColor: Colors.black54,
-                              );
-                            },
-                          ).show();
+                          _stopRide();
                         },
                         style: ButtonStyle(
                           shape: MaterialStateProperty.all(
@@ -567,44 +698,7 @@ class _MapScreenState extends State<MapScreen>
                                     }
                                   }
                                 }
-
-                                AwesomeDialog(
-                                  context: context,
-                                  dialogType: DialogType.QUESTION,
-                                  animType: AnimType.BOTTOMSLIDE,
-                                  headerAnimationLoop: false,
-                                  body: Text('Odomknúť bicykel ${bike.id}?'),
-                                  btnOkText: 'Áno',
-                                  btnOkOnPress: () {
-                                    if (App.user.actualRides.isEmpty) {
-                                      Rent ride = Rent(
-                                          bike: bike,
-                                          id: Random().nextInt(100),
-                                          startDate: DateTime.now(),
-                                          locationStart: stand.location,
-                                          vehicleType: VehicleType.bike);
-                                      setState(() {
-                                        App.user.actualRides.add(ride);
-                                        bike.stand = null;
-                                        stand.bikes.removeWhere(
-                                            (element) => element.id == bike.id);
-                                      });
-                                      Fluttertoast.showToast(
-                                        msg: 'Bicykel bol odomknutý',
-                                        toastLength: Toast.LENGTH_LONG,
-                                        backgroundColor: Colors.black54,
-                                      );
-                                    } else {
-                                      Fluttertoast.showToast(
-                                        msg:
-                                            'Môžeš si požičať len jeden bicykel',
-                                        toastLength: Toast.LENGTH_LONG,
-                                        backgroundColor: Colors.black54,
-                                      );
-                                    }
-                                    Navigator.of(buildContext).pop();
-                                  },
-                                ).show();
+                                _unlockBike(context, bike, stand);
                               },
                               child: Card(
                                 elevation: 0,

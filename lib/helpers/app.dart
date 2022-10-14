@@ -4,7 +4,9 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bikesharing/models/bike.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
 
+import '../constants.dart';
 import '../models/rent.dart';
 import '../models/station.dart';
 import '../models/user.dart';
@@ -28,15 +30,25 @@ class App {
       headerAnimationLoop: false,
       body: Text('Odomknúť bicykel $id?'),
       btnOkText: 'Áno',
-      btnOkOnPress: () {
+      btnOkOnPress: () async {
         if (App.user.actualRides.isEmpty) {
           final bike = App.bikes.firstWhere((element) => element.id == id);
 
           Rent ride = Rent(
-              bike: bike,
-              id: Random().nextInt(100),
-              startDate: DateTime.now(),
-              vehicleType: VehicleType.bike);
+            bike: bike,
+            id: Random().nextInt(100),
+            startDate: DateTime.now(),
+            vehicleType: VehicleType.bike,
+          );
+
+          final url = Uri.parse('http://$ipAddress:$port/api/v1/rent/new');
+          final response = await http.post(
+            url,
+            body: {
+              "id_bike": bike.id,
+              "id_user": 1,
+            },
+          );
 
           App.user.actualRides.add(ride);
 

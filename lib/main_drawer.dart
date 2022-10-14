@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'constants.dart';
+import 'models/auth.dart';
 import 'screens/history/history_screen.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -50,6 +52,39 @@ class MainDrawer extends StatelessWidget {
               ),
               title: const Text('Nahlásiť problém'),
               onTap: () async {},
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.black54,
+              ),
+              title: const Text('Odhlásiť'),
+              onTap: () async {
+                showDialog(
+                    context: context,
+                    builder: (ctx) {
+                      return AlertDialog(
+                        title: const Text('Určite?'),
+                        content: const Text('Chceš sa odhlásiť?'),
+                        alignment: Alignment.center,
+                        actions: [
+                          TextButton(
+                              onPressed: () {
+                                Navigator.of(ctx).pop();
+                                Provider.of<Auth>(context, listen: false)
+                                    .logout();
+                              },
+                              child: const Text('Áno')),
+                          TextButton(
+                              onPressed: () {
+                                Navigator.of(ctx).pop();
+                              },
+                              child: const Text('Nie')),
+                        ],
+                      );
+                    });
+              },
             ),
             const Divider(),
             ListTile(

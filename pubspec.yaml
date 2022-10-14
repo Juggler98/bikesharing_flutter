@@ -45,6 +45,11 @@ dependencies:
   mobile_scanner: ^2.0.0
   url_launcher: ^6.1.4
   http: ^0.13.4
+  google_sign_in: ^5.4.2
+  sign_in_button:
+    git:
+      url: https://github.com/Juggler98/sign_in_button
+      ref: 35d58a34b16ab0ebb34b16f4906fd851b45f2e32
 
   flutter_localizations:
     sdk: flutter
@@ -77,6 +82,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/bike.png
+    - assets/bikesharing.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
