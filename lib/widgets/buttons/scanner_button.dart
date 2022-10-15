@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../screens/scanner_screen.dart';
+import '../../screens/scanner_screen.dart';
 
 class ScannerButton extends StatelessWidget {
   const ScannerButton({Key? key}) : super(key: key);

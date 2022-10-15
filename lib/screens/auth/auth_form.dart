@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/auth.dart';
-import '../widgets/progress_indicator.dart';
+import '../../models/auth.dart';
+import '../../widgets/progress_indicator.dart';
 
 class AuthForm extends StatefulWidget {
   final bool isLogin;

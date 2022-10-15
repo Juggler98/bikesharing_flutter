@@ -10,8 +10,7 @@ import 'package:bikesharing/models/bike.dart';
 import 'package:bikesharing/models/rent.dart';
 import 'package:bikesharing/models/station.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
-import 'package:bikesharing/widgets/code_button.dart';
-import 'package:bikesharing/widgets/scanner_button.dart';
+import 'package:bikesharing/widgets/buttons/code_button.dart';
 import 'package:bikesharing/widgets/stop_timer.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
@@ -22,6 +21,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+
+import '../widgets/buttons/scanner_button.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);

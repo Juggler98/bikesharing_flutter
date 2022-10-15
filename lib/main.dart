@@ -1,5 +1,5 @@
 import 'package:bikesharing/firebase_options.dart';
-import 'package:bikesharing/screens/auth_screen.dart';
+import 'package:bikesharing/screens/auth/auth_screen.dart';
 import 'package:bikesharing/screens/home_screen.dart';
 import 'package:bikesharing/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';

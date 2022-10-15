@@ -2,8 +2,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:flutter/material.dart';
 
-import '../widgets/google_signin_button.dart';
-import '../widgets/progress_indicator.dart';
+import '../../widgets/buttons/google_signin_button.dart';
+import '../../widgets/progress_indicator.dart';
 import 'auth_email_screen.dart';
 
 class AuthScreen extends StatefulWidget {

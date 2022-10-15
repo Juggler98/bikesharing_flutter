@@ -1,7 +1,7 @@
 import 'package:bikesharing/helpers/app.dart';
 import 'package:flutter/material.dart';
 
-import 'code_dialog.dart';
+import '../code_dialog.dart';
 
 class CodeButton extends StatelessWidget {
   const CodeButton({Key? key}) : super(key: key);
