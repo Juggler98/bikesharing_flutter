@@ -62,11 +62,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           LatLng locStart = LatLng(1.0, 1.0);
           LatLng locEnd = LatLng(1.0, 1.0);
           try {
-             locStart = LatLng(h['start_lat'] * 1.0, h['start_lon'] * 1.0);
-             locEnd = LatLng(h['start_lat'] * 1.0, h['start_lon'] * 1.0);
-          } catch (error) {
-
-          }
+            locStart = LatLng(h['start_lat'] * 1.0, h['start_lon'] * 1.0);
+            locEnd = LatLng(h['start_lat'] * 1.0, h['start_lon'] * 1.0);
+          } catch (error) {}
 
           if (h['id_station'] != null) {
             try {

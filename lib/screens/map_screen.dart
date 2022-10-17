@@ -103,7 +103,7 @@ class _MapScreenState extends State<MapScreen>
   void _loadStandsFromServer() async {
     //TODO: Change address if necessary
     final url = Uri.parse('http://$ipAddress:$port/api/v1/stations');
-    try {
+    //try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body) as List<dynamic>;
@@ -126,7 +126,7 @@ class _MapScreenState extends State<MapScreen>
             final bike = Bike(
               id: b['id_bike'],
               stand: station,
-              location: LatLng(b['lat'], b['lon']),
+              location: LatLng(b['lat'] * 1.0, b['lon'] * 1.0),
             );
             station.addBike(bike);
             App.bikes.add(bike);
@@ -143,11 +143,11 @@ class _MapScreenState extends State<MapScreen>
           print('Request failed with status: ${response.statusCode}.');
         }
       }
-    } catch (error) {
+   // } catch (error) {
       if (kDebugMode) {
-        print(error);
+        //print(error);
       }
-    }
+    //}
     if (mounted) {
       setState(() {
         _areMarkersLoading = false;
@@ -413,29 +413,35 @@ class _MapScreenState extends State<MapScreen>
             },
           );
 
-          print(bike.id);
+          if (response.statusCode == 200) {
+            print(bike.id);
 
-          final jsonResponse =
-              jsonDecode(response.body) as Map<String, dynamic>;
+            print(response.body);
 
-          Rent ride = Rent(
-            bike: bike,
-            id: jsonResponse['id_rent'],
-            startDate: DateTime.now(),
-            locationStart: stand.location,
-            vehicleType: VehicleType.bike,
-          );
+            final jsonResponse =
+                jsonDecode(response.body) as Map<String, dynamic>;
 
-          setState(() {
-            App.user.actualRides.add(ride);
-            bike.stand = null;
-            stand.bikes.removeWhere((element) => element.id == bike.id);
-          });
-          Fluttertoast.showToast(
-            msg: 'Bicykel bol odomknutý',
-            toastLength: Toast.LENGTH_LONG,
-            backgroundColor: Colors.black54,
-          );
+            Rent ride = Rent(
+              bike: bike,
+              id: jsonResponse['id_rent'],
+              startDate: DateTime.now(),
+              locationStart: stand.location,
+              vehicleType: VehicleType.bike,
+            );
+
+            setState(() {
+              App.user.actualRides.add(ride);
+              bike.stand = null;
+              stand.bikes.removeWhere((element) => element.id == bike.id);
+            });
+            Fluttertoast.showToast(
+              msg: 'Bicykel bol odomknutý',
+              toastLength: Toast.LENGTH_LONG,
+              backgroundColor: Colors.black54,
+            );
+          } else {
+            print(response.statusCode);
+          }
         } else {
           Fluttertoast.showToast(
             msg: 'Môžeš si požičať len jeden bicykel',

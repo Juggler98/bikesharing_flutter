@@ -46,6 +46,7 @@ android {
         applicationId "com.belsoft.bikesharing"
         minSdkVersion 21
         targetSdkVersion 33
+        compileSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
