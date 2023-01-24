@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "362945747834",
+    "project_id": "bikesharing-f3e11",
+    "storage_bucket": "bikesharing-f3e11.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:362945747834:android:ae2335ffa8db2001b854c3",
+        "android_client_info": {
+          "package_name": "com.belsoft.bikesharing"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "362945747834-jfiap1oifc9g9nk4o1msemlfklqpkbd3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.belsoft.bikesharing",
+            "certificate_hash": "9be7b07e09e23b9ebfea3ac6f0682ff9ccec8ba8"
+          }
+        },
+        {
+          "client_id": "362945747834-p65slh7flkfbvf6nmg56erl3hecsnot4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.belsoft.bikesharing",
+            "certificate_hash": "f8a98c2242cbbb8c4ac8464679747f0fced9ae0e"
+          }
+        },
+        {
+          "client_id": "362945747834-4hiqao9ebmgcc7klpvpigejevufk66r6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCX3Kwl_uj93v5wFqbTcjKGrh9ebio7ZjE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "362945747834-4hiqao9ebmgcc7klpvpigejevufk66r6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
