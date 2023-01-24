@@ -256,12 +256,15 @@ class _MapScreenState extends State<MapScreen>
   //   }
   // }
 
+  LocationData? locationData;
+
   void _changeLastLocation() async {
     try {
-      //final locationData = await Location().getLocation();
-      //final latitude = locationData.latitude;
-      //final longitude = locationData.longitude;
-      //if (mounted) _moveCamera(latitude!, longitude!);
+      final locationData = await Location().getLocation();
+      final latitude = locationData.latitude;
+      final longitude = locationData.longitude;
+      this.locationData = locationData;
+      // if (mounted) _moveCamera(latitude!, longitude!);
     } catch (error) {
       if (kDebugMode) {
         print(error);
@@ -484,6 +487,12 @@ class _MapScreenState extends State<MapScreen>
                               : _extractedMapData?['zoom']!,
                         ),
                         markers: markers,
+                        onTap: (LatLng position) {
+                          if (locationData != null) {
+                            _getMarkers(locationData!, position);
+                          }
+                        },
+                        polylines: _polylineList.toSet(),
                         onMapCreated: (GoogleMapController? controller) {
                           if (mounted) {
                             _controller.complete(controller);
@@ -559,6 +568,72 @@ class _MapScreenState extends State<MapScreen>
       ],
     );
   }
+
+  void _getMarkers(LocationData start, LatLng end) async {
+    List<Map<String, dynamic>> newLocations = [];
+    _polylineList.clear();
+    _polylinePoints.clear();
+    final url = Uri.parse('http://$ipAddress:$port/api/v1/path/shortestNearestPoints');
+    final response = await http.post(
+      url,
+      body: {
+        "x1": start.longitude,
+        "y1": start.latitude,
+        "x2": end.longitude,
+        "y2": start.latitude,
+      },
+    );
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
+      final path = jsonResponse['path'] as List<dynamic>;
+      final double distance = jsonResponse['total_distance'] / 1000;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${distance.toStringAsFixed(2)} km')));
+      for (var p in path) {
+        newLocations.add({
+          'lat': p['lat'],
+          'lon': p['lon'],
+        });
+      }
+    }
+    setState(() {
+      for (int i = 0; i < newLocations.length; i++) {
+        var latitude = newLocations[i]['lat'];
+        var longitude = newLocations[i]['lon'];
+        if (i == newLocations.length - 1) {
+          markers.add(
+            Marker(
+              markerId: MarkerId(i.toString()),
+              position: LatLng(
+                latitude,
+                longitude,
+              ),
+              icon: i == 0
+                  ? BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueGreen)
+                  : BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueViolet),
+            ),
+          );
+        }
+        _polylinePoints.add(
+          LatLng(
+            latitude,
+            longitude,
+          ),
+        );
+      }
+      _polylineList.add(Polyline(
+        polylineId: const PolylineId('a'),
+        points: _polylinePoints,
+        color: Colors.red,
+        width: 4,
+      ));
+    });
+  }
+
+  final List<Polyline> _polylineList = [];
+  final List<LatLng> _polylinePoints = [];
 
   Future<Marker> Function(Cluster<Station>) get _markerBuilder =>
       (cluster) async {
