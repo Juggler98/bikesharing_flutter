@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:bikesharing/screens/route_map_screen.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import 'constants.dart';
+import 'helpers/app.dart';
 import 'models/auth.dart';
 import 'screens/admin/admin_screen.dart';
 import 'screens/history/history_screen.dart';
@@ -73,59 +76,7 @@ class MainDrawer extends StatelessWidget {
 
                 final bikeId = result[0];
 
-                final actions = [
-                  const SheetAction(key: 0, label: 'Defekt'),
-                  const SheetAction(key: 1, label: 'Nejdú brzdy'),
-                  const SheetAction(key: 2, label: 'Problém s reťazou'),
-                  const SheetAction(key: 3, label: 'Problém s kolesom'),
-                  const SheetAction(key: 4, label: 'Chýba časť bicykla'),
-                ];
-
-                final reportType = await showModalActionSheet(
-                  context: context,
-                  actions: actions,
-                );
-
-                if (reportType == null) {
-                  return;
-                }
-
-                final url = Uri.parse(
-                    'https://us-central1-bikesharing-f3e11.cloudfunctions.net/reportNotify');
-                try {
-                  final url2 =
-                      Uri.parse('http://$ipAddress:$port/api/v1/report');
-
-                  final body2 = {
-                    "id_bike": bikeId.toString(),
-                    "id_user": "1",
-                    "id_report_type": reportType.toString()
-                  };
-                  print(body2);
-                  final response = await http.post(url2, body: body2);
-                  if (response.statusCode == 200) {}
-                  print(response.statusCode);
-
-                  final data = {
-                    'userId': 'mfHfRPjbWPaEc2OqHnW5TzYRDjI3',
-                    'bikeId': bikeId,
-                    'reportType': reportType
-                  };
-                  var body = json.encode(data);
-                  //final response = await http.post(url, body: body);
-                  await Future.delayed(const Duration(milliseconds: 500));
-                  FirebaseFunctions.instance
-                      .httpsCallable('reportNotify2')
-                      .call([
-                    'mfHfRPjbWPaEc2OqHnW5TzYRDjI3',
-                    bikeId.toString(),
-                    reportType.toString(),
-                  ]);
-
-                  //print('response ' + response.toString());
-                } catch (error) {
-                  print('ERROR: $error');
-                }
+                await App.reportBike(bikeId, context);
               },
             ),
             const Divider(),
@@ -178,6 +129,21 @@ class MainDrawer extends StatelessWidget {
                   applicationName: 'Bikesharing',
                   applicationVersion: version,
                   applicationLegalese: '© 2022 Adam Belianský & Lukáš Roman',
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(
+                Icons.route,
+                color: Colors.black54,
+              ),
+              title: const Text('Route'),
+              onTap: () async {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => const RouteMapScreen(),
+                  ),
                 );
               },
             ),

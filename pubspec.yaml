@@ -34,8 +34,12 @@ dependencies:
   google_maps_flutter: ^2.2.1
   google_maps_flutter_web: ^0.4.0+3
   google_maps_cluster_manager: ^3.0.0+1
-  firebase_core: ^1.24.0
-  firebase_dynamic_links: ^4.3.11
+  firebase_core: ^2.1.0
+  firebase_dynamic_links: ^5.0.2
+  firebase_auth: ^4.0.2
+  firebase_messaging: ^14.0.2
+  cloud_firestore: ^4.0.2
+  cloud_functions: ^4.0.2
   geolocator: ^9.0.2
   shared_preferences: ^2.0.15
   badges: ^2.0.3
@@ -47,9 +51,6 @@ dependencies:
   http: ^0.13.4
   google_sign_in: ^5.4.2
   adaptive_dialog: ^1.8.0+1
-  firebase_messaging: ^13.0.3
-  cloud_firestore: ^3.4.9
-  cloud_functions: ^3.3.8
   sign_in_button:
     git:
       url: https://github.com/Juggler98/sign_in_button

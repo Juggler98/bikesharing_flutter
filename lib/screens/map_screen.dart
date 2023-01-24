@@ -10,7 +10,9 @@ import 'package:bikesharing/models/bike.dart';
 import 'package:bikesharing/models/rent.dart';
 import 'package:bikesharing/models/station.dart';
 import 'package:bikesharing/models/vehicle_type.dart';
+import 'package:bikesharing/widgets/bottom_timer.dart';
 import 'package:bikesharing/widgets/buttons/code_button.dart';
+import 'package:bikesharing/widgets/rent_bike_item.dart';
 import 'package:bikesharing/widgets/stop_timer.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
@@ -101,52 +103,51 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _loadStandsFromServer() async {
-    //TODO: Change address if necessary
     final url = Uri.parse('http://$ipAddress:$port/api/v1/stations');
     //try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body) as List<dynamic>;
-        App.bikes.clear();
-        App.stations.clear();
-        for (var s in jsonResponse) {
-          final bikes = s['bikes'];
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body) as List<dynamic>;
+      App.bikes.clear();
+      App.stations.clear();
+      for (var s in jsonResponse) {
+        final bikes = s['bikes'];
 
-          final station = Station(
-            name: s['name'],
-            id: s['id'],
-            location: LatLng(
-              s['latitude'],
-              s['longitude'],
-            ),
-            capacity: s['capacity'],
+        final station = Station(
+          name: s['name'],
+          id: s['id'],
+          location: LatLng(
+            s['latitude'],
+            s['longitude'],
+          ),
+          capacity: s['capacity'],
+        );
+
+        for (var b in bikes) {
+          final bike = Bike(
+            id: b['id_bike'],
+            stand: station,
+            location: LatLng(b['lat'] * 1.0, b['lon'] * 1.0),
           );
+          station.addBike(bike);
+          App.bikes.add(bike);
+        }
 
-          for (var b in bikes) {
-            final bike = Bike(
-              id: b['id_bike'],
-              stand: station,
-              location: LatLng(b['lat'] * 1.0, b['lon'] * 1.0),
-            );
-            station.addBike(bike);
-            App.bikes.add(bike);
-          }
-
-          App.stations.add(station);
-        }
-        _loadStands();
-        if (kDebugMode) {
-          //print('Response body: ${response.body}');
-        }
-      } else {
-        if (kDebugMode) {
-          print('Request failed with status: ${response.statusCode}.');
-        }
+        App.stations.add(station);
       }
-   // } catch (error) {
+      _loadStands();
       if (kDebugMode) {
-        //print(error);
+        //print('Response body: ${response.body}');
       }
+    } else {
+      if (kDebugMode) {
+        print('Request failed with status: ${response.statusCode}.');
+      }
+    }
+    // } catch (error) {
+    if (kDebugMode) {
+      //print(error);
+    }
     //}
     if (mounted) {
       setState(() {
@@ -543,68 +544,17 @@ class _MapScreenState extends State<MapScreen>
           ),
         ),
         if (App.user.actualRides.isNotEmpty)
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 60,
-            color: Colors.green,
-            child: Row(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Text(
-                    'Jazda prebieha',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                StopTimer(App.user.actualRides.first.startDate),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _stopRide();
-                        },
-                        style: ButtonStyle(
-                          shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30)),
-                          ),
-                          padding: MaterialStateProperty.all(
-                              const EdgeInsets.symmetric(
-                                  horizontal: 18.0, vertical: 8.0)),
-                          backgroundColor:
-                              MaterialStateProperty.all(Colors.redAccent),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              'Stop',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            SizedBox(width: 5),
-                            Icon(
-                              Icons.stop,
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          BottomTimer('Jazda prebieha', _stopRide,
+              App.user.actualRides.first.startDate),
+        if (App.user.reservations.isNotEmpty)
+          BottomTimer(
+            'Rezervácia prebieha',
+            () {
+              setState(() {
+                App.user.reservations.clear();
+              });
+            },
+            App.user.reservations.first.startDate,
           ),
       ],
     );
@@ -669,61 +619,10 @@ class _MapScreenState extends State<MapScreen>
                       Expanded(
                         child: ListView(
                           children: stand.bikes.map((bike) {
-                            return InkWell(
-                              onTap: () async {
-                                if (kDebugMode && !kIsWeb) {
-                                  final parameters = DynamicLinkParameters(
-                                    // The Dynamic Link URI domain. You can view created URIs on your Firebase console
-                                    uriPrefix:
-                                        'https://bikesharingf3e11.page.link',
-                                    // The deep Link passed to your application which you can use to affect change
-                                    link: Uri.parse(
-                                        'https://bikesharingf3e11.page.link/?id=${bike.id}'),
-                                    // Android application details needed for opening correct app on device/Play Store
-                                    androidParameters: const AndroidParameters(
-                                      packageName: 'com.belsoft.bikesharing',
-                                      minimumVersion: 1,
-                                    ),
-                                    // iOS application details needed for opening correct app on device/App Store
-                                    iosParameters: const IOSParameters(
-                                      bundleId: 'com.belsoft.bikesharing',
-                                      minimumVersion: '1',
-                                    ),
-                                  );
-
-                                  try {
-                                    final shortDynamicLink =
-                                        await FirebaseDynamicLinks.instance
-                                            .buildShortLink(parameters);
-                                    final uri = shortDynamicLink.shortUrl;
-                                    if (kDebugMode) {
-                                      print(uri);
-                                    }
-                                  } catch (error) {
-                                    if (kDebugMode) {
-                                      print('Error: $error');
-                                    }
-                                  }
-                                }
-                                _unlockBike(context, bike, stand);
-                              },
-                              child: Card(
-                                elevation: 0,
-                                margin: const EdgeInsets.symmetric(
-                                    vertical: 1, horizontal: 4),
-                                child: ListTile(
-                                    leading: const FittedBox(
-                                      child: Icon(
-                                        Icons.directions_bike,
-                                        color: Colors.blue,
-                                        size: 54,
-                                      ),
-                                    ),
-                                    title: Text(bike.id.toString(),
-                                        style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold))),
-                              ),
+                            return RentBikeItem(
+                              bike,
+                              stand,
+                              _unlockBike,
                             );
                           }).toList(),
                         ),

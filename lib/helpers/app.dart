@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bikesharing/models/bike.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
@@ -72,5 +75,58 @@ class App {
       },
     ).show();
     return value;
+  }
+
+  static Future<void> reportBike(String bikeId, BuildContext context) async {
+    final actions = [
+      const SheetAction(key: 1, label: 'Defekt'),
+      const SheetAction(key: 2, label: 'Nejdú brzdy'),
+      const SheetAction(key: 3, label: 'Problém s reťazou'),
+      const SheetAction(key: 4, label: 'Problém s kolesom'),
+      const SheetAction(key: 5, label: 'Chýba časť bicykla'),
+    ];
+
+    final reportType = await showModalActionSheet(
+      context: context,
+      actions: actions,
+    );
+
+    if (reportType == null) {
+      return;
+    }
+
+    final url = Uri.parse(
+        'https://us-central1-bikesharing-f3e11.cloudfunctions.net/reportNotify');
+    try {
+      final url2 = Uri.parse('http://$ipAddress:$port/api/v1/report');
+
+      final body2 = {
+        "id_bike": bikeId.toString(),
+        "id_user": "1",
+        "id_report_type": reportType.toString()
+      };
+      print(body2);
+      final response = await http.post(url2, body: body2);
+      if (response.statusCode == 200) {}
+      print(response.statusCode);
+
+      final data = {
+        'userId': 'mfHfRPjbWPaEc2OqHnW5TzYRDjI3',
+        'bikeId': bikeId,
+        'reportType': reportType
+      };
+      var body = json.encode(data);
+      //final response = await http.post(url, body: body);
+      await Future.delayed(const Duration(milliseconds: 500));
+      FirebaseFunctions.instance.httpsCallable('reportNotify2').call([
+        'mfHfRPjbWPaEc2OqHnW5TzYRDjI3',
+        bikeId.toString(),
+        reportType.toString(),
+      ]);
+      Fluttertoast.showToast(msg: 'Hlásenie odoslané.');
+      //print('response ' + response.toString());
+    } catch (error) {
+      print('ERROR: $error');
+    }
   }
 }

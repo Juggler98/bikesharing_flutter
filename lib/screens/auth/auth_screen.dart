@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../models/auth.dart';
 import '../../widgets/buttons/google_signin_button.dart';
 import '../../widgets/progress_indicator.dart';
 import 'auth_email_screen.dart';
@@ -31,49 +35,54 @@ class _AuthScreenState extends State<AuthScreen>
 
   final _googleSignIn = GoogleSignIn();
 
-  // void _googleLogin() async {
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //   GoogleSignInAccount? user;
-  //   try {
-  //     user = await _googleSignIn.signIn();
-  //   } catch (error) {
-  //     if (kDebugMode) {
-  //       print('Error _googleLogin(): $error');
-  //     }
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //     return;
-  //   }
-  //   if (user == null) {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //     return;
-  //   } else {
-  //     final googleAuth = await user.authentication;
-  //
-  //     final oauthCredential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
-  //     );
-  //
-  //     _signIn(oauthCredential);
-  //   }
-  // }
+  void _googleLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+    GoogleSignInAccount? user;
+    try {
+      user = await _googleSignIn.signIn();
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error _googleLogin(): $error');
+      }
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+    if (user == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    } else {
+      final googleAuth = await user.authentication;
 
-  // void _signIn(OAuthCredential oAuthCredential) async {
-  //
-  //
-  //   // setState(() {
-  //   //   _isLoading = false;
-  //   // });
-  //
-  //   // await _googleSignIn.disconnect();
-  //   // FirebaseAuth.instance.signOut();
-  // }
+      final oauthCredential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      _signIn(oauthCredential);
+    }
+  }
+
+  void _signIn(OAuthCredential oAuthCredential) async {
+    final userCredential =
+        await FirebaseAuth.instance.signInWithCredential(oAuthCredential);
+
+    print(userCredential.user?.refreshToken);
+    Provider.of<Auth>(context, listen: false).setToken = userCredential.user?.refreshToken;
+
+    if (userCredential.additionalUserInfo!.isNewUser) {}
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +152,7 @@ class _AuthScreenState extends State<AuthScreen>
                         const SizedBox(height: 20)
                       else
                         const SizedBox(height: 56),
-                      GoogleSignInButton(() {}),
+                      GoogleSignInButton(_googleLogin),
                       Row(
                         children: const [
                           Expanded(

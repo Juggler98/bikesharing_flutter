@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Auth with ChangeNotifier {
   String? _token;
-  DateTime? _expiryDate;
+  //DateTime? _expiryDate;
   String? _userId;
   Timer? _authTimer;
 
@@ -18,12 +18,17 @@ class Auth with ChangeNotifier {
   }
 
   String? get token {
-    if (_expiryDate != null &&
-        _expiryDate!.isAfter(DateTime.now()) &&
-        _token != null) {
+    // if (_expiryDate != null &&
+    //     _expiryDate!.isAfter(DateTime.now()) &&
+    //     _token != null) {
       return _token;
-    }
+    //}
     return null;
+  }
+
+  set setToken(String? token) {
+    _token = token;
+    notifyListeners();
   }
 
   String? get userId {
@@ -52,20 +57,20 @@ class Auth with ChangeNotifier {
       App.user.id = responseData['localId'];
       _token = responseData['idToken'];
       _userId = responseData['localId'];
-      _expiryDate = DateTime.now().add(
-        Duration(
-          seconds: int.parse(
-            responseData['expiresIn'],
-          ),
-        ),
-      );
-      _autoLogout();
+      // _expiryDate = DateTime.now().add(
+      //   Duration(
+      //     seconds: int.parse(
+      //       responseData['expiresIn'],
+      //     ),
+      //   ),
+      // );
+      //_autoLogout();
       notifyListeners();
       final prefs = await SharedPreferences.getInstance();
       final userData = json.encode({
         'token': _token,
         'userId': _userId,
-        'expiryDate': _expiryDate?.toIso8601String(),
+        //'expiryDate': _expiryDate?.toIso8601String(),
       });
       prefs.setString('userData', userData);
     } catch (error) {
@@ -93,16 +98,16 @@ class Auth with ChangeNotifier {
     }
     _token = extractedUserData['token'];
     _userId = extractedUserData['userId'];
-    _expiryDate = expiryDate;
+    //_expiryDate = expiryDate;
     notifyListeners();
-    _autoLogout();
+    //_autoLogout();
     return true;
   }
 
   Future<void> logout() async {
     _token = null;
     _userId = null;
-    _expiryDate = null;
+    //_expiryDate = null;
     if (_authTimer != null) {
       _authTimer!.cancel();
       _authTimer = null;
@@ -113,11 +118,11 @@ class Auth with ChangeNotifier {
     prefs.clear();
   }
 
-  void _autoLogout() {
-    if (_authTimer != null) {
-      _authTimer!.cancel();
-    }
-    final timeToExpiry = _expiryDate!.difference(DateTime.now()).inSeconds;
-    _authTimer = Timer(Duration(seconds: timeToExpiry), logout);
-  }
+  // void _autoLogout() {
+  //   if (_authTimer != null) {
+  //     _authTimer!.cancel();
+  //   }
+  //   final timeToExpiry = _expiryDate!.difference(DateTime.now()).inSeconds;
+  //   _authTimer = Timer(Duration(seconds: timeToExpiry), logout);
+  // }
 }

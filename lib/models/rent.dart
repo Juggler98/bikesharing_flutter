@@ -28,4 +28,8 @@ class Rent {
     this.standEnd,
     required this.vehicleType,
   });
+
+  static Rent getDummyRent() {
+    return Rent(id: 0, startDate: DateTime.now(), vehicleType: VehicleType.bike, bike: Bike(id: 0));
+  }
 }
